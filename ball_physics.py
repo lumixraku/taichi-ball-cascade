@@ -235,7 +235,7 @@ def main():
     frame = 0
     while window.running:
         # ~5 balls per second at 60fps
-        if n_alive[None] + 1 <= N_BALL and frame % 12 == 0:
+        if n_alive[None] + 1 <= N_BALL and frame % 60 == 0:
             spawn(1)
 
         for _ in range(SUB):
