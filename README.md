@@ -73,7 +73,7 @@ uv run --with taichi python try_elements_2d.py
 
 把 `water_cascade.py` 的场景（7 层挡板）用 `taichi-elements` 重写一遍。比我们手写版的水**更像真水**：手写版 `E=400` 看起来像浆糊，elements 默认 `E=1e6` 才是真水级的不可压缩流体。
 
-![water cascade running with elements](screenshots/water_cascade_elements.jpg)
+![water cascade running with elements](https://raw.githubusercontent.com/lumixraku/taichi-ball-cascade/main/screenshots/water_cascade_elements.jpg)
 
 关键设计：
 
