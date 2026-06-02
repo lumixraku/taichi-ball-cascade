@@ -68,7 +68,26 @@ uv run --with taichi python try_elements_2d.py
 
 - Metal 后端不支持 `Pointer SNode`（稀疏网格），代码里强制用 `ti.cpu` 后端
 - 启动有一堆 `int32 implicit cast` 警告，是 Taichi 0.8 → 1.7 API 漂移留下的，不致命
-- 这就是为什么我们的 `water_cascade.py` 选择自己手写而不用这个库
+
+### 5. `water_cascade_elements.py` —— taichi-elements 版的瀑布级联
+
+把 `water_cascade.py` 的场景（7 层挡板）用 `taichi-elements` 重写一遍。比我们手写版的水**更像真水**：手写版 `E=400` 看起来像浆糊，elements 默认 `E=1e6` 才是真水级的不可压缩流体。
+
+![water cascade running with elements](screenshots/water_cascade_elements.jpg)
+
+关键设计：
+
+- **挡板**：库的 `add_surface_collider` 只能做无限半平面，做不出有限长挡板。改用 `add_sphere_collider(surface_slip)` 沿挡板线段串一串小球（63 个 collider）
+- **批量 collider 优化**：原生 API 给每个球注册一个独立 `ti.kernel`，CPU 上 90+ 次 kernel 启动直接卡到个位数 FPS。我们手写一个 batched kernel，把所有球的 SDF 检查塞进一次网格遍历，FPS 提升 5-10 倍
+- **流出屏幕**：`unbounded=True` 让水飞出 `[0,1]` 后自动消失
+- **每 5 秒喷一坨水**（墙钟时间，不是帧数）
+
+```bash
+# 同样需要先 clone taichi_elements 到 ~/code/taichi_elements
+uv run --with taichi python water_cascade_elements.py
+```
+
+操作：**R** 重置场景 | **ESC** 退出
 
 ## Demo 之间的对比
 
@@ -76,8 +95,9 @@ uv run --with taichi python try_elements_2d.py
 |---|---|---|---|---|
 | `ball_physics.py` | 离散刚体 | ~300 | ~270 行 | 学习碰撞 / 离散物理 |
 | `water_mpm.py` | MPM | 8192 | ~110 行 | 学习 MPM 最小骨架 |
-| `water_cascade.py` | MPM + 挡板 + GUI | 10000 | ~230 行 | 实战、调参、出效果 |
+| `water_cascade.py` | MPM + 挡板 + GUI | 10000 | ~230 行 | 实战、调参、出效果（看起来像浆糊）|
 | `try_elements_2d.py` | MPM（外部库）| 自动 | ~80 行 | 看高层库怎么封装 |
+| `water_cascade_elements.py` | MPM（外部库）+ 挡板 | ~3000 | ~150 行 | 真水视觉效果，性能受 CPU 限 |
 
 ## Prompt 实现方式（`ball_physics.py`）
 
